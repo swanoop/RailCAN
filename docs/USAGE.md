@@ -91,16 +91,3 @@ python -m railcan simulate --socketcan can0 --allow-hardware --duration 10
 ```
 
 SocketCAN transmission is always wall-clock paced. An accelerated generation request is rejected if its profile estimate would exceed 80% nominal bus load. RailCAN never runs interface-configuration commands itself. Host scheduling is best effort: Python and a general-purpose operating system do not guarantee hard real-time CAN timing.
-
-## GitHub
-
-Create a repository named `RailCAN` in your account, then upload this folder's contents, including `.github`. Or, with Git and GitHub CLI installed and signed in:
-
-```bash
-git init -b main
-git add .
-git commit -m "Add train CAN telemetry simulator"
-gh repo create RailCAN --private --source=. --remote=origin --push
-```
-
-Choose `--public` instead of `--private` if you intend to publish publicly. The workflow will run after a push. The project does not require GitHub to run locally.
