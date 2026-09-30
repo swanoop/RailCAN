@@ -1,0 +1,475 @@
+{
+  "name": "EMU_Demo",
+  "bitrate": 250000,
+  "train": {
+    "target_speed_kph": 90.0,
+    "acceleration_mps2": 0.65,
+    "braking_mps2": 0.75,
+    "emergency_mps2": 1.2,
+    "dwell_s": 12.0,
+    "cruise_s": 30.0,
+    "mass_kg": 160000.0,
+    "passengers": 240,
+    "ambient_c": 14.0,
+    "cabin_c": 21.0,
+    "supply_voltage": 750.0
+  },
+  "messages": [
+    {
+      "name": "Motion",
+      "can_id": 256,
+      "period_ms": 50,
+      "signals": [
+        {
+          "name": "SpeedKph",
+          "source": "speed_kph",
+          "start": 0,
+          "length": 16,
+          "scale": 0.01,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 250,
+          "unit": "km/h",
+          "signed": false
+        },
+        {
+          "name": "Acceleration",
+          "source": "acceleration",
+          "start": 16,
+          "length": 16,
+          "scale": 0.001,
+          "offset": 0,
+          "minimum": -3,
+          "maximum": 3,
+          "unit": "m/s2",
+          "signed": true
+        },
+        {
+          "name": "OperatingMode",
+          "source": "mode",
+          "start": 32,
+          "length": 8,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 5,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "EmergencyBrake",
+          "source": "emergency",
+          "start": 40,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        }
+      ],
+      "sender": "VCU",
+      "extended": false
+    },
+    {
+      "name": "Position",
+      "can_id": 257,
+      "period_ms": 100,
+      "signals": [
+        {
+          "name": "DistanceM",
+          "source": "distance_m",
+          "start": 0,
+          "length": 32,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 429496729.5,
+          "unit": "m",
+          "signed": false
+        },
+        {
+          "name": "TargetSpeed",
+          "source": "target_speed_kph",
+          "start": 32,
+          "length": 16,
+          "scale": 0.01,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 250,
+          "unit": "km/h",
+          "signed": false
+        }
+      ],
+      "sender": "VCU",
+      "extended": false
+    },
+    {
+      "name": "Traction",
+      "can_id": 512,
+      "period_ms": 100,
+      "signals": [
+        {
+          "name": "MotorRPM",
+          "source": "motor_rpm",
+          "start": 0,
+          "length": 16,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 12000,
+          "unit": "rpm",
+          "signed": false
+        },
+        {
+          "name": "TractionDemand",
+          "source": "traction_pct",
+          "start": 16,
+          "length": 16,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 100,
+          "unit": "%",
+          "signed": false
+        },
+        {
+          "name": "MotorTemp",
+          "source": "motor_temp_c",
+          "start": 32,
+          "length": 16,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": -40,
+          "maximum": 200,
+          "unit": "degC",
+          "signed": true
+        }
+      ],
+      "sender": "TractionECU",
+      "extended": false
+    },
+    {
+      "name": "Braking",
+      "can_id": 513,
+      "period_ms": 100,
+      "signals": [
+        {
+          "name": "BrakePipe",
+          "source": "brake_pipe_bar",
+          "start": 0,
+          "length": 16,
+          "scale": 0.001,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 10,
+          "unit": "bar",
+          "signed": false
+        },
+        {
+          "name": "BrakeCylinder",
+          "source": "brake_cylinder_bar",
+          "start": 16,
+          "length": 16,
+          "scale": 0.001,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 10,
+          "unit": "bar",
+          "signed": false
+        },
+        {
+          "name": "BrakeDemand",
+          "source": "brake_pct",
+          "start": 32,
+          "length": 8,
+          "scale": 0.5,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 100,
+          "unit": "%",
+          "signed": false
+        },
+        {
+          "name": "Emergency",
+          "source": "emergency",
+          "start": 40,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "ParkingBrake",
+          "source": "parking_brake",
+          "start": 41,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "BrakeFault",
+          "source": "brake_fault",
+          "start": 42,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        }
+      ],
+      "sender": "BrakeECU",
+      "extended": false
+    },
+    {
+      "name": "Doors",
+      "can_id": 768,
+      "period_ms": 200,
+      "signals": [
+        {
+          "name": "LeftDoorMask",
+          "source": "left_doors",
+          "start": 0,
+          "length": 8,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 255,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "RightDoorMask",
+          "source": "right_doors",
+          "start": 8,
+          "length": 8,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 255,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "DoorsLocked",
+          "source": "doors_locked",
+          "start": 16,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "TractionInterlock",
+          "source": "interlock",
+          "start": 17,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "Obstruction",
+          "source": "door_obstruction",
+          "start": 18,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "DoorFault",
+          "source": "door_fault",
+          "start": 19,
+          "length": 1,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "PassengerCount",
+          "source": "passengers",
+          "start": 24,
+          "length": 16,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 2000,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "StationIndex",
+          "source": "station_index",
+          "start": 40,
+          "length": 8,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 255,
+          "unit": "",
+          "signed": false
+        }
+      ],
+      "sender": "DoorECU",
+      "extended": false
+    },
+    {
+      "name": "Power",
+      "can_id": 1024,
+      "period_ms": 250,
+      "signals": [
+        {
+          "name": "DCVoltage",
+          "source": "supply_voltage",
+          "start": 0,
+          "length": 16,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 2000,
+          "unit": "V",
+          "signed": false
+        },
+        {
+          "name": "DCCurrent",
+          "source": "dc_current_a",
+          "start": 16,
+          "length": 16,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": -3000,
+          "maximum": 3000,
+          "unit": "A",
+          "signed": true
+        },
+        {
+          "name": "BatteryVoltage",
+          "source": "battery_voltage",
+          "start": 32,
+          "length": 16,
+          "scale": 0.01,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 150,
+          "unit": "V",
+          "signed": false
+        }
+      ],
+      "sender": "PowerECU",
+      "extended": false
+    },
+    {
+      "name": "HVAC",
+      "can_id": 1280,
+      "period_ms": 500,
+      "signals": [
+        {
+          "name": "CabinTemp",
+          "source": "cabin_c",
+          "start": 0,
+          "length": 16,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": -40,
+          "maximum": 100,
+          "unit": "degC",
+          "signed": true
+        },
+        {
+          "name": "AmbientTemp",
+          "source": "ambient_c",
+          "start": 16,
+          "length": 16,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": -40,
+          "maximum": 100,
+          "unit": "degC",
+          "signed": true
+        },
+        {
+          "name": "HVACState",
+          "source": "hvac_state",
+          "start": 32,
+          "length": 8,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 3,
+          "unit": "",
+          "signed": false
+        },
+        {
+          "name": "Setpoint",
+          "source": "setpoint_c",
+          "start": 40,
+          "length": 8,
+          "scale": 0.5,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 50,
+          "unit": "degC",
+          "signed": false
+        }
+      ],
+      "sender": "HVACECU",
+      "extended": false
+    },
+    {
+      "name": "Diagnostics",
+      "can_id": 1536,
+      "period_ms": 1000,
+      "signals": [
+        {
+          "name": "Uptime",
+          "source": "uptime_s",
+          "start": 0,
+          "length": 32,
+          "scale": 0.1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 429496729.5,
+          "unit": "s",
+          "signed": false
+        },
+        {
+          "name": "FaultCode",
+          "source": "fault_code",
+          "start": 32,
+          "length": 16,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 65535,
+          "unit": "",
+          "signed": false
+        }
+      ],
+      "sender": "TCMS",
+      "extended": false
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="railcan-token" content="__RAILCAN_TOKEN__">
+  <title>RailCAN · Train telemetry lab</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RailCAN home"><span class="brand-mark">R</span>RailCAN<span class="brand-divider"></span><span class="brand-sub">TRAIN TELEMETRY LAB</span></a>
+    <div class="topbar-right"><span class="local-dot"></span>Local simulation<span class="version" id="version">v0.1.0</span></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="eyebrow">SIMULATION SETUP</div>
+      <h2>Build your run.</h2>
+      <p class="subtle">Generate repeatable train telemetry and inspect the CAN traffic.</p>
+      <form id="setup">
+        <label for="scenario">Scenario</label>
+        <select id="scenario" name="scenario"></select>
+        <p class="scenario-description" id="scenario-description"></p>
+        <div class="form-grid">
+          <div><label for="duration">Duration <span class="subtle">s</span></label><input id="duration" type="number" value="180" min="1" max="3600" step="1" required></div>
+          <div><label for="seed">Random seed</label><input id="seed" type="number" value="42" step="1" required></div>
+        </div>
+        <label for="rate">Time multiplier</label>
+        <select id="rate"><option value="0.5">0.5× · slow motion</option><option value="1" selected>1× · real time</option><option value="2">2×</option><option value="5">5×</option><option value="10">10× · accelerated</option></select>
+        <div class="run-controls"><button class="primary" id="run" type="submit">Start simulation <span>▶</span></button><button type="button" class="icon-button" id="reset" title="Reset session" aria-label="Reset session">↺</button></div>
+      </form>
+      <div class="side-divider"></div>
+      <div class="eyebrow">FAULT INJECTION</div>
+      <h3>Test the unexpected.</h3>
+      <label for="fault">Fault type</label>
+      <select id="fault"></select>
+      <label for="fault-duration">Fault window <span class="subtle">s</span></label>
+      <input id="fault-duration" type="number" value="10" min="0.01" max="3600" step="0.01">
+      <button class="secondary full" id="inject" type="button">Inject fault</button>
+      <button class="text-button" id="clear-faults" type="button">Clear fault windows</button>
+      <div class="side-divider"></div>
+      <div class="eyebrow">SIGNAL PROFILE</div>
+      <p class="profile-name" id="profile-name">EMU_Demo</p>
+      <div class="profile-meta" id="profile-meta">8 messages · Classical CAN<br>250 kbit/s · synthetic layout</div>
+      <div class="profile-actions"><button class="text-button" id="download-dbc">Download DBC ↗</button><button class="text-button" id="download-profile">Download profile ↗</button></div>
+      <p class="side-note">The dashboard records locally. SocketCAN test-bench output is available through the command line.</p>
+    </aside>
+    <main>
+      <div class="workspace-heading"><div><div class="eyebrow">LIVE WORKSPACE</div><h1>A train journey, in bytes.</h1><p class="subtle">Correlated signals. Timed messages. A complete recording.</p></div><span class="status-badge" id="status">READY</span></div>
+      <div class="metrics">
+        <section class="metric"><div class="metric-label">VEHICLE SPEED <span class="metric-dot"></span></div><div class="metric-value accent" id="speed">0.0 <small>km/h</small></div><div class="metric-caption" id="mode">Station dwell</div></section>
+        <section class="metric"><div class="metric-label">DISTANCE TRAVELLED</div><div class="metric-value" id="distance">0.00 <small>km</small></div><div class="metric-caption" id="station">Station 01</div></section>
+        <section class="metric"><div class="metric-label">CAPTURED FRAMES</div><div class="metric-value" id="frames">0</div><div class="metric-caption" id="fps">62 frames / simulated second</div></section>
+        <section class="metric"><div class="metric-label">NOMINAL BUS LOAD</div><div class="metric-value" id="load">2.75 <small>%</small></div><div class="metric-caption">At 1× · excludes bit stuffing</div></section>
+      </div>
+      <div class="overview-grid">
+        <section class="panel chart-panel"><div class="panel-heading"><h3>Speed over time</h3><div class="chart-legend"><span><i class="legend actual"></i>Vehicle</span><span><i class="legend reported"></i>On-wire</span></div></div><div class="chart-wrap"><canvas id="speed-chart" role="img" aria-label="Vehicle and reported CAN speed over the last 72 simulated seconds"></canvas><div class="chart-empty" id="chart-empty">Start a run to see the journey unfold.</div></div><div class="chart-footer"><span id="clock">00:00.00 / 03:00</span><span id="fault-status">No active faults</span></div><progress id="progress" max="180" value="0" aria-label="Simulation progress"></progress></section>
+        <section class="panel subsystem-panel"><div class="panel-heading"><h3>Vehicle systems</h3><span class="tiny-badge">MODEL STATE</span></div><div class="system-row"><span>Traction demand</span><strong id="traction">0%</strong></div><progress id="traction-bar" max="100" value="0" aria-label="Traction demand"></progress><div class="system-row"><span>Brake demand</span><strong id="braking">0%</strong></div><progress class="amber" id="brake-bar" max="100" value="0" aria-label="Brake demand"></progress><div class="system-divider"></div><div class="system-row"><span>Door interlock</span><strong id="doors">Released</strong></div><div class="system-row"><span>Brake pipe</span><strong id="pressure">5.00 bar</strong></div><div class="system-row"><span>DC supply</span><strong id="voltage">750 V</strong></div><div class="system-row"><span>Cabin temperature</span><strong id="temperature">21.0 °C</strong></div><div class="system-row"><span>Checksum errors</span><strong id="checksum-errors">0</strong></div></section>
+      </div>
+      <section class="panel consist-panel"><div class="consist-info"><div class="eyebrow">DEMONSTRATION CONSIST</div><strong id="journey-label">Platform dwell</strong><span class="subtle" id="journey-detail">Passenger doors open · traction inhibited</span></div><div class="train-scene" id="train-scene" aria-label="Illustrative train consist"><div class="train"><div class="car cab"><span class="windshield"></span><span class="window"></span><span class="train-door"></span></div><div class="coupler"></div><div class="car"><span class="window"></span><span class="window"></span><span class="train-door"></span></div><div class="coupler"></div><div class="car rear"><span class="window"></span><span class="train-door"></span><span class="window"></span></div></div><div class="track"></div></div></section>
+      <section class="panel messages-panel"><div class="panel-heading"><div><h3>CAN message monitor</h3><p class="subtle small">Latest frame per message. Select a row to decode its signals.</p></div><span class="tiny-badge" id="message-count">8 MESSAGE DEFINITIONS</span></div><div class="table-wrap"><table><thead><tr><th>CAN ID</th><th>MESSAGE</th><th>CYCLE</th><th>PAYLOAD · HEX</th><th>COUNTER</th><th>INTEGRITY</th></tr></thead><tbody id="messages"></tbody></table></div><div class="decode-panel" id="decode-panel" hidden><div class="decode-heading"><strong id="decode-title"></strong><button class="text-button" id="close-decode">Close ×</button></div><div class="signals" id="signals"></div></div></section>
+      <div class="bottom-grid"><section class="panel raw-panel"><div class="panel-heading"><h3>Raw traffic</h3><input id="filter" type="search" placeholder="Filter ID or message" aria-label="Filter raw frames"></div><div class="raw-heading"><span>TIME · s</span><span>ID</span><span>DATA · HEX</span><span>MESSAGE</span></div><div class="raw-rows" id="raw-frames" aria-label="Recent CAN frames"><div class="empty-log">Waiting for CAN traffic.</div></div></section><section class="panel events-panel"><div class="panel-heading"><h3>Session events</h3><span class="tiny-badge">RECENT</span></div><div id="events" class="events"></div></section></div>
+      <section class="export-bar"><div><strong>Take the recording with you.</strong><p class="subtle small">Export all captured frames, including injected faults.</p></div><div class="export-buttons"><button data-export="log">candump</button><button data-export="csv">CSV</button><button data-export="jsonl">JSONL</button><button data-export="pcap">PCAP ↗</button></div></section>
+      <footer>Synthetic telemetry for learning, analysis, and isolated test benches.<span>RailCAN · <span id="footer-version">0.1.0</span></span></footer>
+    </main>
+  </div>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

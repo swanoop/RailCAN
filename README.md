@@ -125,4 +125,3 @@ railcan --help
 Tests cover byte-level encoding, schedule counts, model invariants, deterministic seeds, timed faults, trace round trips, malformed inputs, replay, local API controls, and export snapshots. GitHub Actions runs tests and builds the package on Linux and Windows. Actual adapter transmission needs a separate CAN test bench.
 
 MIT licensed.
-

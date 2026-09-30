@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "railcan"
+version = "0.1.0"
+description = "Train telemetry and Classical CAN traffic simulator for offline analysis and CAN test benches"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Swanoop Ramakrishnan"}]
+keywords = ["can", "rail", "telemetry", "socketcan", "simulator"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.scripts]
+railcan = "railcan.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["railcan*"]
+
+[tool.setuptools.package-data]
+railcan = ["web/*.html", "web/*.css", "web/*.js"]

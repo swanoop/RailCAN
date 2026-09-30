@@ -1,0 +1,6 @@
+[
+  {"kind": "stuck_speed", "start_s": 20, "duration_s": 10, "message": "Motion"},
+  {"kind": "message_dropout", "start_s": 35, "duration_s": 8, "message": "Traction"},
+  {"kind": "checksum_error", "start_s": 50, "duration_s": 5, "message": "Motion"},
+  {"kind": "emergency_brake", "start_s": 65, "duration_s": 18}
+]
