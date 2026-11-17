@@ -69,3 +69,77 @@ Primary references:
 - [IEC 61375-3-3:2012 description](https://webstore.iec.ch/en/publication/5404)
 - [CiA international standardisation](https://www.can-cia.org/cia-groups/international-standardization)
 - [SocketCAN PCAP link type](https://www.tcpdump.org/linktypes/LINKTYPE_CAN_SOCKETCAN.html)
+
+## Message options
+
+Every message in a profile can also set:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `trailer` | `counter_xor` | `counter_xor` reserves bytes 6–7 for AliveCounter and Checksum; `none` gives signals the whole payload |
+| `dlc` | `8` | Payload length 1–8 (must be 8 with `counter_xor`) |
+| `fill` | `0` | Byte value for bits no signal uses; J1939 uses `255` (0xFF, "not available") |
+| `pgn` | — | J1939 parameter group. Give `pgn`, `priority` (default 6), `source_address` (default 0) and, for PDU1 PGNs, `destination` (default 255) instead of `can_id`; `extended`, `trailer: none` and `fill: 255` then default automatically |
+
+```json
+{"name": "MyPGN", "pgn": "0xFF10", "priority": 6, "source_address": 66, "period_ms": 100,
+ "signals": [{"name": "Level", "source": "sine(0,100,20)", "start": 0, "length": 16, "scale": 0.01,
+              "maximum": 100, "unit": "%"}]}
+```
+
+## Signal sources
+
+A signal's `source` is a model value, a train parameter, a waveform or a sequence number:
+
+| Source | Value |
+|---|---|
+| `sine(low,high,period_s)` | Smooth oscillation starting at `low` |
+| `ramp(low,high,period_s)` | Sawtooth from `low` to `high`, repeating |
+| `triangle(low,high,period_s)` | Up and down between the limits |
+| `square(low,high,period_s)` | `low` for the first half of each period, then `high` |
+| `step(low,high,at_s)` | `low` until `at_s`, then `high` |
+| `random(low,high)` | Seeded uniform noise |
+| `const(value)` | Fixed value |
+| `seq` | Per-message transmission count (0, 1, 2, …; wraps at 2³²) for end-to-end tracing |
+
+Validation rejects a waveform whose range leaves the signal's `[minimum, maximum]`.
+
+Engine model sources: `engine_speed_rpm`, `engine_load_pct`, `coolant_temp_c`, `oil_pressure_kpa`,
+`fuel_rate_lph`, `engine_hours_h`, `engine_running`. Engine load follows traction demand plus a
+constant auxiliary load.
+
+## J1939 profile (`--profile j1939`)
+
+29-bit identifiers, source address 0, no counter/checksum trailer, unused bits 0xFF. Scalings
+follow the public SAE J1939-71 definitions of these parameters.
+
+| Message | PGN | ID | Cycle | Signals |
+|---|---|---|---:|---|
+| EEC1 | 0xF004 | `0CF00400` | 20 ms | ActualEnginePercentTorque (byte 2, 1 %/bit, −125 % offset), EngineSpeed (bytes 3–4, 0.125 rpm/bit) |
+| EEC2 | 0xF003 | `0CF00300` | 50 ms | EnginePercentLoadAtCurrentSpeed (byte 2, 1 %/bit) |
+| LFE1 | 0xFEF2 | `18FEF200` | 100 ms | EngineFuelRate (bytes 0–1, 0.05 L/h per bit) |
+| EFL_P1 | 0xFEEF | `18FEEF00` | 500 ms | EngineOilPressure (byte 3, 4 kPa/bit) |
+| ET1 | 0xFEEE | `18FEEE00` | 1000 ms | EngineCoolantTemperature (byte 0, 1 °C/bit, −40 °C offset) |
+| HOURS | 0xFEE5 | `18FEE500` | 1000 ms | EngineTotalHoursOfOperation (bytes 0–3, 0.05 h/bit) |
+| VEP1 | 0xFEF7 | `18FEF700` | 1000 ms | BatteryPotential (bytes 4–5, 0.05 V/bit) |
+| Probe | 0xFF00 | `18FF0000` | 1000 ms | ProbeSequence (bytes 0–3, `seq`) — proprietary B, for tracing |
+| DM1 | 0xFECA | `18FECA00` | 1000 ms | Lamp status and active DTCs |
+
+On a real network HOURS is usually sent on request; it is broadcast here for convenience.
+
+### DM1 and TP.BAM
+
+The `dm1` block of a profile turns fault windows into active diagnostic trouble codes:
+
+```json
+"dm1": {"source_address": 0, "period_ms": 1000, "priority": 6,
+        "fault_dtcs": {"coolant_overtemp": {"spn": 110, "fmi": 0},
+                       "low_oil_pressure": {"spn": 100, "fmi": 1}}}
+```
+
+A `dtc` fault adds any SPN/FMI directly: `{"kind": "dtc", "start_s": 10, "duration_s": 30, "spn": 190, "fmi": 2}`.
+With no active DTC, DM1 is `00 FF 00 00 00 00 FF FF`. With one, it is a single frame with the
+amber warning lamp on. With two or more, the payload is sent as a broadcast announce message
+(TP.CM BAM, `1CECFF00`) followed by data packets (TP.DT, `1CEBFF00`) 50 ms apart; a new DM1 is
+not started until the previous transfer has finished. DTCs use SPN conversion method 0 and an
+occurrence count of 1. `railcan inspect` reassembles BAM transfers and lists the DTCs it saw.

@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from . import __version__
-from .profile import Profile, TICK_MS, default_profile, export_dbc, finite, integer
+from .profile import TICK_MS, Profile, default_profile, export_dbc, finite, integer
 from .simulator import FAULT_KINDS, SCENARIOS, Fault, Simulator
 from .traces import read_trace, write_trace
 
@@ -181,7 +181,9 @@ class Session:
                 continue
             compatible[name] = description
         return {"version": __version__, "profile": self.profile.to_dict(),
-                "scenarios": compatible, "faults": list(FAULT_KINDS)}
+                "scenarios": compatible,
+                # Explicit DTC faults need an SPN and FMI, so they are set through fault files.
+                "faults": [kind for kind in FAULT_KINDS if kind != "dtc"]}
 
     def export(self, format: str) -> Path:
         if format not in {"log", "csv", "jsonl", "pcap", "dbc", "profile"}:

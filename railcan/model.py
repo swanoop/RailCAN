@@ -11,7 +11,9 @@ from .profile import Train
 MODES = {"station": 0, "accelerating": 1, "cruising": 2, "braking": 3, "emergency": 4, "depot": 5}
 FAULT_CODES = {"emergency_brake": 1, "door_obstruction": 2, "hvac_overheat": 3,
                "low_voltage": 4, "stuck_speed": 5, "message_dropout": 6,
-               "checksum_error": 7, "counter_freeze": 8, "speed_spike": 9}
+               "checksum_error": 7, "counter_freeze": 8, "speed_spike": 9,
+               "coolant_overtemp": 10, "low_oil_pressure": 11, "dtc": 12, "freeze_message": 13}
+IDLE_RPM, RATED_RPM = 600.0, 1800.0
 
 
 class TrainModel:
@@ -27,6 +29,8 @@ class TrainModel:
         self.station = 0
         self.motor_temp = 35.0
         self.cabin_temp = train.cabin_c
+        self.engine_rpm = IDLE_RPM
+        self.coolant_temp = 70.0
         self.telemetry = {}
         self.step(0, (), 0)
 
@@ -102,6 +106,17 @@ class TrainModel:
         current = (mechanical_kw * 1000 / max(voltage, 1)) + 40
         current = max(-3000, min(3000, current))
         fault_code = next((code for name, code in FAULT_CODES.items() if name in active), 0)
+        # On-board diesel engine / generator: load follows traction plus a constant auxiliary load.
+        engine_load = 0.0 if emergency and self.speed_mps == 0 else min(100.0, 15.0 + traction)
+        rpm_target = IDLE_RPM if engine_load <= 20 else IDLE_RPM + (RATED_RPM - IDLE_RPM) * engine_load / 100
+        self.engine_rpm += (rpm_target - self.engine_rpm) * min(1.0, dt / 2.0)
+        coolant_target = 82 + engine_load * .1
+        if "coolant_overtemp" in active:
+            coolant_target = 118.0
+        self.coolant_temp += (coolant_target - self.coolant_temp) * min(1.0, dt / (20 if "coolant_overtemp" in active else 120))
+        oil_pressure = 150 + (self.engine_rpm - IDLE_RPM) * .25
+        if "low_oil_pressure" in active:
+            oil_pressure *= .3
         telemetry = asdict(self.train)
         telemetry.update({
             "target_speed_kph": target,
@@ -121,6 +136,10 @@ class TrainModel:
             "dc_current_a": current, "battery_voltage": 85 if low_voltage else 110.2,
             "cabin_c": self.cabin_temp, "hvac_state": hvac, "setpoint_c": setpoint,
             "uptime_s": timestamp, "fault_code": fault_code,
+            "engine_speed_rpm": round(self.engine_rpm, 3), "engine_load_pct": engine_load,
+            "coolant_temp_c": round(self.coolant_temp, 3), "oil_pressure_kpa": round(oil_pressure, 3),
+            "fuel_rate_lph": round(4 + engine_load * 2.2, 3),
+            "engine_hours_h": 1000 + timestamp / 3600, "engine_running": 1,
         })
         self.telemetry = telemetry
 

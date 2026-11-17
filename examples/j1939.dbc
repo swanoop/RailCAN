@@ -1,0 +1,72 @@
+VERSION "RailCAN synthetic profile 0.1"
+
+NS_ :
+    CM_
+    BA_DEF_
+    BA_
+
+BS_:
+
+BU_: Analyzer Engine TestHarness
+
+BA_DEF_ BO_ "GenMsgCycleTime" INT 0 60000;
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN","reserved","J1939PG";
+BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_DEF_DEF_ "VFrameFormat" "StandardCAN";
+
+BO_ 2364539904 EEC1: 8 Engine
+ SG_ ActualEnginePercentTorque : 16|8@1+ (1,-125) [0|125] "%" Analyzer
+ SG_ EngineSpeed : 24|16@1+ (0.125,0) [0|8031.88] "rpm" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2364539904 20;
+BA_ "VFrameFormat" BO_ 2364539904 3;
+CM_ BO_ 2364539904 "Synthetic J1939 PGN 61444 (0xF004); unused bits 0xFF.";
+
+BO_ 2364539648 EEC2: 8 Engine
+ SG_ EnginePercentLoadAtCurrentSpeed : 16|8@1+ (1,0) [0|250] "%" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2364539648 50;
+BA_ "VFrameFormat" BO_ 2364539648 3;
+CM_ BO_ 2364539648 "Synthetic J1939 PGN 61443 (0xF003); unused bits 0xFF.";
+
+BO_ 2566844928 LFE1: 8 Engine
+ SG_ EngineFuelRate : 0|16@1+ (0.05,0) [0|3212.75] "L/h" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2566844928 100;
+BA_ "VFrameFormat" BO_ 2566844928 3;
+CM_ BO_ 2566844928 "Synthetic J1939 PGN 65266 (0xFEF2); unused bits 0xFF.";
+
+BO_ 2566844160 EFL_P1: 8 Engine
+ SG_ EngineOilPressure : 24|8@1+ (4,0) [0|1000] "kPa" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2566844160 500;
+BA_ "VFrameFormat" BO_ 2566844160 3;
+CM_ BO_ 2566844160 "Synthetic J1939 PGN 65263 (0xFEEF); unused bits 0xFF.";
+
+BO_ 2566843904 ET1: 8 Engine
+ SG_ EngineCoolantTemperature : 0|8@1+ (1,-40) [-40|210] "degC" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2566843904 1000;
+BA_ "VFrameFormat" BO_ 2566843904 3;
+CM_ BO_ 2566843904 "Synthetic J1939 PGN 65262 (0xFEEE); unused bits 0xFF.";
+
+BO_ 2566841600 HOURS: 8 Engine
+ SG_ EngineTotalHoursOfOperation : 0|32@1+ (0.05,0) [0|2.10554e+08] "h" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2566841600 1000;
+BA_ "VFrameFormat" BO_ 2566841600 3;
+CM_ BO_ 2566841600 "Synthetic J1939 PGN 65253 (0xFEE5); unused bits 0xFF.";
+
+BO_ 2566846208 VEP1: 8 Engine
+ SG_ BatteryPotential : 32|16@1+ (0.05,0) [0|3212.75] "V" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2566846208 1000;
+BA_ "VFrameFormat" BO_ 2566846208 3;
+CM_ BO_ 2566846208 "Synthetic J1939 PGN 65271 (0xFEF7); unused bits 0xFF.";
+
+BO_ 2566848512 Probe: 8 TestHarness
+ SG_ ProbeSequence : 0|32@1+ (1,0) [0|4.29497e+09] "" Analyzer
+
+BA_ "GenMsgCycleTime" BO_ 2566848512 1000;
+BA_ "VFrameFormat" BO_ 2566848512 3;
+CM_ BO_ 2566848512 "Synthetic J1939 PGN 65280 (0xFF00); unused bits 0xFF.";

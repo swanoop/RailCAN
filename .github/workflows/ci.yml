@@ -40,3 +40,5 @@ jobs:
           railcan --version
           railcan simulate --duration 1 --out ci-capture.log
           railcan inspect ci-capture.log
+          railcan simulate --profile j1939 --scenario multi_dtc --duration 40 --out ci-j1939.pcap
+          railcan inspect ci-j1939.pcap --profile j1939

@@ -54,8 +54,12 @@ Candump, CSV, and JSONL timestamps are relative simulated seconds. PCAP uses the
 | `message_dropout` | Omits selected messages while source counters continue |
 | `checksum_error` | Inverts the selected message's XOR checksum byte |
 | `counter_freeze` | Freezes the selected message's alive counter |
+| `freeze_message` | Holds every signal of the selected message at its value when the window starts (frames keep coming) |
+| `coolant_overtemp` | Drives engine coolant temperature towards 118 °C |
+| `low_oil_pressure` | Cuts engine oil pressure to 30 % |
+| `dtc` | Adds an explicit diagnostic trouble code to DM1; needs `spn` and `fmi` |
 
-Frame faults default to `Motion`, except dropout which defaults to `Traction`. Provide `message` to select a custom message. Sensor faults require that message to contain a `speed_kph` source. Counters and sensor readings return to their current values after the fault; counters may jump at recovery. At most 100 fault events are accepted per session.
+Frame faults default to `Motion`, except dropout which defaults to `Traction`. Provide `message` to select a custom message, which is required with the J1939 profile. `checksum_error` and `counter_freeze` need a message with the `counter_xor` trailer. Sensor faults require that message to contain a `speed_kph` source. Counters and sensor readings return to their current values after the fault; counters may jump at recovery. At most 100 fault events are accepted per session.
 
 ## Replay and inspection
 
@@ -87,7 +91,84 @@ For an isolated physical bench, a typical setup is:
 sudo ip link set can0 down
 sudo ip link set can0 type can bitrate 250000
 sudo ip link set can0 up
-python -m railcan simulate --socketcan can0 --allow-hardware --duration 10
+python -m railcan simulate --interface can0 --allow-hardware --duration 10
 ```
 
 SocketCAN transmission is always wall-clock paced. An accelerated generation request is rejected if its profile estimate would exceed 80% nominal bus load. RailCAN never runs interface-configuration commands itself. Host scheduling is best effort: Python and a general-purpose operating system do not guarantee hard real-time CAN timing.
+
+## CAN interfaces
+
+`--interface` (`-i`) selects where frames go; `--socketcan CHANNEL` still works.
+
+| Specification | Interface | Needs |
+|---|---|---|
+| `vcan0`, `can0`, `socketcan:can0` | Linux SocketCAN | Linux |
+| `pythoncan:<backend>:<channel>` | Any compatible python-can backend | `pip install "railcan[hardware]"` + the backend's driver |
+| `pythoncan:virtual:bench` | python-can in-process virtual bus | python-can |
+| `udp:192.168.1.50:4001[:4001]` | RailCAN 13-byte CAN-over-IP transport, UDP | — |
+| `tcp:192.168.1.50:4001` | RailCAN 13-byte CAN-over-IP transport, TCP | — |
+
+python-can supports multiple operating systems and backends. RailCAN passes the adapter bitrate
+from `--bitrate` or the profile; backend and driver support determine whether it can be applied.
+The UDP/TCP transport uses RailCAN's 13-byte frame format: one info byte (bit 7 extended, bit 6
+remote, bits 0–3 DLC), a big-endian 4-byte ID and 8 data bytes. Compatibility with a commercial
+gateway must be established from that gateway's protocol documentation. For UDP the optional
+third number is the local port to listen on.
+
+Physical buses, python-can hardware backends and non-loopback gateways need `--allow-hardware`.
+
+While transmitting, RailCAN:
+
+* records each accepted frame with its interface-acceptance time, so it can be compared with an
+  independent receive-side recording later;
+* retries a full transmit queue for 100 ms, then drops the frame, counts it, and exits with
+  status 3 at the end of the run instead of stopping mid-test;
+* warns before starting if a SocketCAN link's bitrate differs from the profile, the controller is
+  not error-active, automatic bus-off restart is off, or `txqueuelen` is short.
+
+## Monitor live traffic
+
+```bash
+railcan monitor -i can1 --allow-hardware --profile j1939 --out bus.log --events events.jsonl
+railcan monitor -i pythoncan:pcan:PCAN_USBBUS1 --allow-hardware --decode --duration 60
+```
+
+`monitor` does not originate data frames. It records frames in any trace format, prints a status
+line each second, decodes with `--decode` (including DM1 faults, reassembled from TP.BAM), and
+writes error frames and controller states (`no_ack`, `bus_off`, `tx_passive`, …) to `--events`.
+A CAN controller in normal mode can still acknowledge received traffic; select a backend-specific
+listen-only mode if a strictly passive capture is required. Stop with Ctrl+C or `--duration`.
+
+## Record broker telemetry
+
+```bash
+export RAILCAN_MQTT_PASSWORD='...'
+railcan mqtt-listen --host broker.example --tls --cafile ca.pem --username bench \
+  --topic 'fleet/+/telemetry' --out received.jsonl
+```
+
+A small built-in MQTT 3.1.1 client (no third-party package) subscribes with QoS 0 or 1, over TLS
+with optional client certificates. Payloads are decoded as JSON or MessagePack (`--encoding`), and
+each message becomes one JSONL record: `received_at`, `topic`, `qos`, `retain`, `encoding`,
+`bytes` and `payload`. The password is read only from `RAILCAN_MQTT_PASSWORD`.
+
+## Verify end to end
+
+```bash
+railcan verify sent.log bus.log --profile j1939
+railcan verify sent.log received.jsonl --telemetry --profile j1939 --probe-field PROBE_SEQ \
+  --compare EngineSpeed=ENG_RPM --settle 30 --max-loss 0.1 --max-p95-ms 5000
+```
+
+The first form compares two CAN recordings per message: sent, received, missing, missing
+blocks, duplicates, reordering, unexpected frames and latency percentiles. The second compares
+CAN in with decoded telemetry out using the probe sequence signal, lists contiguous missing
+blocks with times and durations, and checks values of `--compare` signals within a time window
+(`--window`, default 2 s) and half a scaling step. `--settle` excludes frames still in flight at
+the end. `--max-loss` and `--max-p95-ms` return exit status 2 on failure, for scripted runs.
+Latency needs Unix timestamps on both sides and synchronised clocks. CAN-to-CAN comparison holds
+both recordings in memory (roughly 300 MB per million frames); for multi-hour soaks prefer the
+probe-based `--telemetry` comparison, or verify hour-long recordings separately. Frames with
+identical payloads (constant signals) are counted exactly per message but cannot be matched
+one-to-one, so their latency is approximate; the probe sequence is exact. See
+[TEST_BENCH.md](TEST_BENCH.md) for a complete procedure.

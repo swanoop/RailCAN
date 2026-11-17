@@ -4,18 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "railcan"
-version = "0.1.0"
-description = "Train telemetry and Classical CAN traffic simulator for offline analysis and CAN test benches"
+version = "0.2.0"
+description = "Classical CAN and SAE J1939 traffic generator, monitor and end-to-end verifier for CAN test benches"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Swanoop Ramakrishnan"}]
-keywords = ["can", "rail", "telemetry", "socketcan", "simulator"]
+keywords = ["can", "rail", "telemetry", "socketcan", "simulator", "j1939", "mqtt", "test-bench"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering",
 ]
+
+[project.optional-dependencies]
+hardware = ["python-can>=4.2"]
 
 [project.scripts]
 railcan = "railcan.cli:main"
@@ -25,3 +29,7 @@ include = ["railcan*"]
 
 [tool.setuptools.package-data]
 railcan = ["web/*.html", "web/*.css", "web/*.js"]
+
+[tool.ruff.lint]
+# Public parsers consistently report malformed user data as ValueError.
+ignore = ["TRY004"]

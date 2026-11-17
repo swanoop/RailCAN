@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const token = document.querySelector('meta[name="railcan-token"]').content;
 let schema = null, state = null, selectedId = null, noticeTimer = null, busy = false;
-const faultLabels = {emergency_brake:"Emergency brake",door_obstruction:"Door obstruction",hvac_overheat:"HVAC overheating",low_voltage:"Low supply voltage",stuck_speed:"Freeze speed sensor",message_dropout:"Traction message dropout",checksum_error:"Corrupt checksum",counter_freeze:"Freeze alive counter",speed_spike:"Speed signal spike"};
+const faultLabels = {emergency_brake:"Emergency brake",door_obstruction:"Door obstruction",hvac_overheat:"HVAC overheating",low_voltage:"Low supply voltage",stuck_speed:"Freeze speed sensor",message_dropout:"Traction message dropout",checksum_error:"Corrupt checksum",counter_freeze:"Freeze alive counter",speed_spike:"Speed signal spike",coolant_overtemp:"Engine coolant over-temperature",low_oil_pressure:"Low engine oil pressure"};
 const phases = {station:"Station dwell",accelerating:"Accelerating",cruising:"Cruising",braking:"Service braking",emergency:"Emergency braking"};
 function node(tag, text, className) { const item = document.createElement(tag); if(text !== undefined) item.textContent = text; if(className) item.className = className; return item; }
 function notify(message, error=false) { clearTimeout(noticeTimer); $("notice").textContent = message; $("notice").className = error ? "error" : ""; $("notice").hidden = false; noticeTimer=setTimeout(()=>$("notice").hidden=true,6000); }
@@ -42,9 +42,9 @@ function renderMessages(){
     const frame=latest.get(message.can_id),row=node("tr");row.tabIndex=0;row.setAttribute("aria-label",`Decode ${message.name}`);row.classList.toggle("selected",selectedId===message.can_id);
     const identifier=message.can_id.toString(16).toUpperCase().padStart(message.extended?8:3,"0");
     row.append(node("td","0x"+identifier),node("td",message.name),node("td",message.period_ms+" ms"));
-    row.append(node("td",frame?frame.data_hex.match(/.{1,2}/g).join(" "):"—","payload"),node("td",frame?String(frame.signals.AliveCounter):"—","counter"));
+    row.append(node("td",frame?frame.data_hex.match(/.{1,2}/g).join(" "):"—","payload"),node("td",frame&&message.trailer!=="none"?String(frame.signals.AliveCounter):"—","counter"));
     let text="WAITING",kind="waiting";
-    if(frame){const stale=state.time_s-frame.timestamp>message.period_ms/1000*2.1;text=stale?"STALE":frame.checksum_valid?"VALID":"BAD CHECKSUM";kind=stale?"stale":frame.checksum_valid?"":"bad";}
+    if(frame){const stale=state.time_s-frame.timestamp>message.period_ms/1000*2.1;const ok=frame.checksum_valid!==false;text=stale?"STALE":frame.checksum_valid===null?"RECEIVED":ok?"VALID":"BAD CHECKSUM";kind=stale?"stale":ok?"":"bad";}
     const cell=node("td");cell.append(node("span",text,"integrity "+kind));row.append(cell);
     const choose=()=>{selectedId=message.can_id;renderMessages();};row.addEventListener("click",choose);row.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();choose();}});fragment.append(row);
   }
@@ -55,7 +55,7 @@ function renderDecode(){
   const message=schema.profile.messages.find(m=>m.can_id===selectedId),frame=state.latest.find(f=>f.can_id===selectedId);
   $("decode-title").textContent=message.name+" · decoded latest frame";
   const fragment=document.createDocumentFragment();
-  for(const signal of [...message.signals,{name:"AliveCounter",unit:""},{name:"Checksum",unit:""}]){
+  for(const signal of [...message.signals,...(message.trailer==="none"?[]:[{name:"AliveCounter",unit:""},{name:"Checksum",unit:""}])]){
     const tile=node("div",undefined,"signal");tile.append(node("span",signal.name,"signal-label"));let value=frame?frame.signals[signal.name]:"—";
     if(typeof value==="number")value=Number(value.toFixed(3)).toString();tile.append(node("span",value+(signal.unit?" "+signal.unit:""),"signal-value"));fragment.append(tile);
   }

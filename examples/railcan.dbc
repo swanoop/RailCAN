@@ -10,7 +10,9 @@ BS_:
 BU_: Analyzer BrakeECU DoorECU HVACECU PowerECU TCMS TractionECU VCU
 
 BA_DEF_ BO_ "GenMsgCycleTime" INT 0 60000;
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_DEF_DEF_ "VFrameFormat" "StandardCAN";
 
 BO_ 256 Motion: 8 VCU
  SG_ SpeedKph : 0|16@1+ (0.01,0) [0|250] "km/h" Analyzer
@@ -21,7 +23,7 @@ BO_ 256 Motion: 8 VCU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 256 50;
-CM_ BO_ 256 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 256 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 257 Position: 8 VCU
  SG_ DistanceM : 0|32@1+ (0.1,0) [0|4.29497e+08] "m" Analyzer
@@ -30,7 +32,7 @@ BO_ 257 Position: 8 VCU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 257 100;
-CM_ BO_ 257 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 257 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 512 Traction: 8 TractionECU
  SG_ MotorRPM : 0|16@1+ (1,0) [0|12000] "rpm" Analyzer
@@ -40,7 +42,7 @@ BO_ 512 Traction: 8 TractionECU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 512 100;
-CM_ BO_ 512 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 512 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 513 Braking: 8 BrakeECU
  SG_ BrakePipe : 0|16@1+ (0.001,0) [0|10] "bar" Analyzer
@@ -53,7 +55,7 @@ BO_ 513 Braking: 8 BrakeECU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 513 100;
-CM_ BO_ 513 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 513 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 768 Doors: 8 DoorECU
  SG_ LeftDoorMask : 0|8@1+ (1,0) [0|255] "" Analyzer
@@ -68,7 +70,7 @@ BO_ 768 Doors: 8 DoorECU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 768 200;
-CM_ BO_ 768 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 768 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 1024 Power: 8 PowerECU
  SG_ DCVoltage : 0|16@1+ (0.1,0) [0|2000] "V" Analyzer
@@ -78,7 +80,7 @@ BO_ 1024 Power: 8 PowerECU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 1024 250;
-CM_ BO_ 1024 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 1024 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 1280 HVAC: 8 HVACECU
  SG_ CabinTemp : 0|16@1- (0.1,0) [-40|100] "degC" Analyzer
@@ -89,7 +91,7 @@ BO_ 1280 HVAC: 8 HVACECU
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 1280 500;
-CM_ BO_ 1280 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 1280 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 
 BO_ 1536 Diagnostics: 8 TCMS
  SG_ Uptime : 0|32@1+ (0.1,0) [0|4.29497e+08] "s" Analyzer
@@ -98,5 +100,5 @@ BO_ 1536 Diagnostics: 8 TCMS
  SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Analyzer
 
 BA_ "GenMsgCycleTime" BO_ 1536 1000;
-CM_ BO_ 1536 "Synthetic train telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
+CM_ BO_ 1536 "Synthetic telemetry; checksum is XOR of ID bytes and payload bytes 0-6.";
 

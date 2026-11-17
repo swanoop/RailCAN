@@ -70,7 +70,11 @@
         }
       ],
       "sender": "VCU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "Position",
@@ -103,7 +107,11 @@
         }
       ],
       "sender": "VCU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "Traction",
@@ -148,7 +156,11 @@
         }
       ],
       "sender": "TractionECU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "Braking",
@@ -229,7 +241,11 @@
         }
       ],
       "sender": "BrakeECU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "Doors",
@@ -334,7 +350,11 @@
         }
       ],
       "sender": "DoorECU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "Power",
@@ -379,7 +399,11 @@
         }
       ],
       "sender": "PowerECU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "HVAC",
@@ -436,7 +460,11 @@
         }
       ],
       "sender": "HVACECU",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     },
     {
       "name": "Diagnostics",
@@ -469,7 +497,11 @@
         }
       ],
       "sender": "TCMS",
-      "extended": false
+      "extended": false,
+      "trailer": "counter_xor",
+      "dlc": 8,
+      "fill": 0,
+      "pgn": null
     }
   ]
 }

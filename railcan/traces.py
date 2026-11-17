@@ -6,8 +6,8 @@ import csv
 import json
 import re
 import struct
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Iterable, Iterator
 
 from .frame import Frame
 from .profile import Profile, default_profile, finite
@@ -165,34 +165,57 @@ def read_trace(path: str | Path, format: str | None = None) -> Iterator[Frame]:
 
 
 def inspect_trace(frames: Iterable[Frame], profile: Profile | None = None) -> dict:
+    from .j1939 import PGN_DM1, BAMReassembler, decode_dm1, pgn_of
     profile = profile or default_profile()
-    definitions = profile.by_id
     results, previous, first, last, total = {}, {}, None, None, 0
+    reassembler, dm1_count, dtcs = BAMReassembler(), 0, {}
     for frame in frames:
         total += 1
         first = frame.timestamp if first is None else first
         last = frame.timestamp
         key = (frame.can_id, frame.extended)
-        message = definitions.get(frame.can_id)
-        known = message is not None and message.extended == frame.extended and len(frame.data) == 8
+        message = profile.lookup(frame.can_id, frame.extended)
+        known = message is not None and frame.matches(message)
+        trailer = known and message.has_trailer
+        name = message.name if known else frame.record(profile)["message"]
         row = results.setdefault(key, {"can_id": frame.hex_id, "extended": frame.extended,
-                                      "message": message.name if known else "Unknown", "frames": 0,
+                                      "message": name, "frames": 0,
                                       "checksum_errors": 0, "counter_anomalies": 0,
                                       "missing_frames_estimate": 0, "max_gap_s": 0.0})
         row["frames"] += 1
-        if known:
+        if trailer:
             row["checksum_errors"] += int(not frame.checksum_valid)
         if key in previous:
             prior = previous[key]
             gap = frame.timestamp - prior.timestamp
             row["max_gap_s"] = round(max(row["max_gap_s"], gap), 6)
-            if known and len(prior.data) == 8:
+            if known and len(prior.data) == len(frame.data):
                 slots = max(1, round(gap * 1000 / message.period_ms))
                 row["missing_frames_estimate"] += max(0, slots - 1)
-                expected_counter = (prior.data[6] + slots) & 0xFF
-                row["counter_anomalies"] += int(frame.data[6] != expected_counter)
+                if trailer:
+                    expected_counter = (prior.data[6] + slots) & 0xFF
+                    row["counter_anomalies"] += int(frame.data[6] != expected_counter)
         previous[key] = frame
-    return {"frames": total, "start_s": first, "end_s": last,
-            "span_s": round(last - first, 6) if total else 0,
-            "messages": [results[key] for key in sorted(results)],
-            "notes": "Gap estimates require the matching profile and include only gaps between observed frames."}
+        if frame.extended:
+            payload = None
+            if pgn_of(frame.can_id) == PGN_DM1 and len(frame.data) == 8:
+                payload = frame.data
+            else:
+                done = reassembler.feed(frame.timestamp, frame.can_id, frame.data)
+                if done and done[0] == PGN_DM1:
+                    payload = done[2]
+            if payload is not None:
+                dm1_count += 1
+                for dtc in decode_dm1(payload)["dtcs"]:
+                    entry = dtcs.setdefault((dtc["spn"], dtc["fmi"]), {"spn": dtc["spn"], "fmi": dtc["fmi"],
+                                                                       "first_s": frame.timestamp, "broadcasts": 0})
+                    entry["broadcasts"] += 1
+                    entry["last_s"] = frame.timestamp
+    summary = {"frames": total, "start_s": first, "end_s": last,
+               "span_s": round(last - first, 6) if total else 0,
+               "messages": [results[key] for key in sorted(results)],
+               "notes": "Gap estimates require the matching profile and include only gaps between observed frames."}
+    if dm1_count or reassembler.aborted:
+        summary["j1939"] = {"dm1_broadcasts": dm1_count, "bam_incomplete": reassembler.aborted,
+                            "dtcs": sorted(dtcs.values(), key=lambda d: (d["spn"], d["fmi"]))}
+    return summary

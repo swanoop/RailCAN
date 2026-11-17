@@ -1,0 +1,246 @@
+{
+  "name": "J1939_Engine_Demo",
+  "bitrate": 250000,
+  "train": {
+    "target_speed_kph": 90.0,
+    "acceleration_mps2": 0.65,
+    "braking_mps2": 0.75,
+    "emergency_mps2": 1.2,
+    "dwell_s": 12.0,
+    "cruise_s": 30.0,
+    "mass_kg": 160000.0,
+    "passengers": 240,
+    "ambient_c": 14.0,
+    "cabin_c": 21.0,
+    "supply_voltage": 750.0
+  },
+  "messages": [
+    {
+      "name": "EEC1",
+      "can_id": 217056256,
+      "period_ms": 20,
+      "signals": [
+        {
+          "name": "ActualEnginePercentTorque",
+          "source": "engine_load_pct",
+          "start": 16,
+          "length": 8,
+          "scale": 1,
+          "offset": -125,
+          "minimum": 0,
+          "maximum": 125,
+          "unit": "%",
+          "signed": false
+        },
+        {
+          "name": "EngineSpeed",
+          "source": "engine_speed_rpm",
+          "start": 24,
+          "length": 16,
+          "scale": 0.125,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 8031.875,
+          "unit": "rpm",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 61444
+    },
+    {
+      "name": "EEC2",
+      "can_id": 217056000,
+      "period_ms": 50,
+      "signals": [
+        {
+          "name": "EnginePercentLoadAtCurrentSpeed",
+          "source": "engine_load_pct",
+          "start": 16,
+          "length": 8,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 250,
+          "unit": "%",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 61443
+    },
+    {
+      "name": "LFE1",
+      "can_id": 419361280,
+      "period_ms": 100,
+      "signals": [
+        {
+          "name": "EngineFuelRate",
+          "source": "fuel_rate_lph",
+          "start": 0,
+          "length": 16,
+          "scale": 0.05,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 3212.75,
+          "unit": "L/h",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 65266
+    },
+    {
+      "name": "EFL_P1",
+      "can_id": 419360512,
+      "period_ms": 500,
+      "signals": [
+        {
+          "name": "EngineOilPressure",
+          "source": "oil_pressure_kpa",
+          "start": 24,
+          "length": 8,
+          "scale": 4,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 1000,
+          "unit": "kPa",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 65263
+    },
+    {
+      "name": "ET1",
+      "can_id": 419360256,
+      "period_ms": 1000,
+      "signals": [
+        {
+          "name": "EngineCoolantTemperature",
+          "source": "coolant_temp_c",
+          "start": 0,
+          "length": 8,
+          "scale": 1,
+          "offset": -40,
+          "minimum": -40,
+          "maximum": 210,
+          "unit": "degC",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 65262
+    },
+    {
+      "name": "HOURS",
+      "can_id": 419357952,
+      "period_ms": 1000,
+      "signals": [
+        {
+          "name": "EngineTotalHoursOfOperation",
+          "source": "engine_hours_h",
+          "start": 0,
+          "length": 32,
+          "scale": 0.05,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 210554060.75,
+          "unit": "h",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 65253
+    },
+    {
+      "name": "VEP1",
+      "can_id": 419362560,
+      "period_ms": 1000,
+      "signals": [
+        {
+          "name": "BatteryPotential",
+          "source": "battery_voltage",
+          "start": 32,
+          "length": 16,
+          "scale": 0.05,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 3212.75,
+          "unit": "V",
+          "signed": false
+        }
+      ],
+      "sender": "Engine",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 65271
+    },
+    {
+      "name": "Probe",
+      "can_id": 419364864,
+      "period_ms": 1000,
+      "signals": [
+        {
+          "name": "ProbeSequence",
+          "source": "seq",
+          "start": 0,
+          "length": 32,
+          "scale": 1,
+          "offset": 0,
+          "minimum": 0,
+          "maximum": 4294967295,
+          "unit": "",
+          "signed": false
+        }
+      ],
+      "sender": "TestHarness",
+      "extended": true,
+      "trailer": "none",
+      "dlc": 8,
+      "fill": 255,
+      "pgn": 65280
+    }
+  ],
+  "dm1": {
+    "source_address": 0,
+    "period_ms": 1000,
+    "priority": 6,
+    "fault_dtcs": {
+      "coolant_overtemp": {
+        "spn": 110,
+        "fmi": 0
+      },
+      "low_oil_pressure": {
+        "spn": 100,
+        "fmi": 1
+      }
+    }
+  }
+}

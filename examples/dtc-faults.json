@@ -1,0 +1,6 @@
+[
+  {"kind": "coolant_overtemp", "start_s": 20, "duration_s": 40},
+  {"kind": "dtc", "start_s": 30, "duration_s": 20, "spn": 190, "fmi": 2},
+  {"kind": "message_dropout", "start_s": 70, "duration_s": 10, "message": "EEC1"},
+  {"kind": "freeze_message", "start_s": 85, "duration_s": 10, "message": "EFL_P1"}
+]

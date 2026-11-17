@@ -2,7 +2,7 @@ import unittest
 from dataclasses import replace
 
 from railcan.profile import default_profile
-from railcan.simulator import Fault, SCENARIOS, Simulator
+from railcan.simulator import SCENARIOS, Fault, Simulator
 
 
 def short_profile():
